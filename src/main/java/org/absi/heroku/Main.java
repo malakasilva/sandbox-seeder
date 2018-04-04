@@ -1,5 +1,7 @@
 package org.absi.heroku;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,19 +24,37 @@ public class Main {
 		String securityToken = "pr8IwOxxe6ICixa0w0ihOD7mZ";
 		String sObjects = "Account";		
 				
-		DownloaderMain syncMain;
+		/*DownloaderMain downloaderMain;
 		try {
-			syncMain = new DownloaderMain(userName, password, securityToken);			
+			downloaderMain = new DownloaderMain(userName, password, securityToken);
 		} catch (SyncException e) {
 			LOGGER.log(Level.SEVERE, "Error while setting up", e);
 			return;
 		}
-		for(String sObject:sObjects.split(",")) {
+		for(String sObjectType:sObjects.split(",")) {
 			try {
-				LOGGER.info("Start Syncing object " + sObject);
-				syncMain.generateCSV(sObject);	
-			} catch (SyncException e) {
-				LOGGER.log(Level.SEVERE, "Error while sync " + sObject, e);
+				downloaderMain.generateCSV(sObjectType);
+			} catch (Exception e) {
+				LOGGER.log(Level.SEVERE, "Error while sync " + sObjectType, e);
+			}	
+		}*/
+		
+		CSVReader csvReader;
+		try {
+			csvReader = new CSVReader(userName, password, securityToken);			
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Error while setting up", e);
+			return;
+		}		
+		
+		for(String sObjectType:sObjects.split(",")) {
+			try {
+				LOGGER.info("Start Syncing object " + sObjectType);
+				List<String>lIds = new ArrayList<String>();
+				lIds.add("00128000009h2RvAAI");
+				csvReader.createSobjects("Account", lIds);	
+			} catch (Exception e) {
+				LOGGER.log(Level.SEVERE, "Error while sync " + sObjectType, e);
 			}	
 		}
 		LOGGER.info("Completed the sync job sucessfully.");

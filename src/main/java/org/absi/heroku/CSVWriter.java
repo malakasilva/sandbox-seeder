@@ -19,6 +19,7 @@ public class CSVWriter {
 	private static final Logger LOGGER = Logger.getLogger(CSVWriter.class.getName());
 	private static final String NEWLINE_CHAR = "\n";
 	public static final String SPLITTER_CHAR = ",";
+	public static final String QUOTE = "\"";
 	public static final String FILE_PATH = "C:/work/tmp/";
 	
 	public void writeFile(String sObjectType, SObject[]sObjects, Field[]fields){
@@ -27,8 +28,8 @@ public class CSVWriter {
 			
 		File file = new File(FILE_PATH + sObjectType + ".csv");
 		
-		if (!file.isFile()) {
-			sb.append("'id'");
+		if (!(file.exists() && file.isFile())) {
+			sb.append(QUOTE + "Id" + QUOTE);
 			for (Field field : fields) {
 				
 				if (field.getType().toString().equals("id")) {
@@ -52,7 +53,7 @@ public class CSVWriter {
 						|| field.getType().toString().equals("multipicklist")
 						|| field.getType().toString().equals("encryptedstring")
 						|| field.getType().toString().equals("currency")) {   
-					sb.append(SPLITTER_CHAR + "'" + field.getName() + "'");
+					sb.append(SPLITTER_CHAR + QUOTE + field.getName() + QUOTE);
 				} else {
 					LOGGER.log(Level.WARNING, "Field type not supported when inserting data. Field Type : " + field.getType().toString());
 					continue;
@@ -62,7 +63,7 @@ public class CSVWriter {
 		} 
 		
 		for (SObject sObject:sObjects) {
-			sb.append("'" + sObject.getId() + "'");
+			sb.append(QUOTE + sObject.getId() + QUOTE);
 			for (Field field : fields) {
 				
 				if (field.getType().toString().equals("id")) {
@@ -79,19 +80,21 @@ public class CSVWriter {
 						|| field.getType().toString().equals("multipicklist")
 						|| field.getType().toString().equals("encryptedstring")
 						|| field.getType().toString().equals("address")) {
-					sb.append(SPLITTER_CHAR + "'" + getString(sObject.getField(field.getName())) + "'");
+					sb.append(SPLITTER_CHAR + QUOTE + getString(sObject.getField(field.getName())) + QUOTE);
 				} else if (field.getType().toString().equals("date")) {
-					sb.append(SPLITTER_CHAR + "'" + getDate(sObject.getField(field.getName())) + "'");
+					sb.append(SPLITTER_CHAR + QUOTE + getDate(sObject.getField(field.getName())) + QUOTE);
 				} else if (field.getType().toString().equals("datetime")) {
-					sb.append(SPLITTER_CHAR + "'" + getDateTime(sObject.getField(field.getName())) + "'");
+					sb.append(SPLITTER_CHAR + QUOTE + getDateTime(sObject.getField(field.getName())) + QUOTE);
 				} else if (field.getType().toString().equals("double") 
 						|| field.getType().toString().equals("currency")
 						|| field.getType().toString().equals("percent")) { 
-					sb.append(SPLITTER_CHAR + "'" + getDouble(sObject.getField(field.getName())) + "'");
+					sb.append(SPLITTER_CHAR + QUOTE + getDouble(sObject.getField(field.getName())) + QUOTE);
 				} else if (field.getType().toString().equals("int")) {   
-					sb.append(SPLITTER_CHAR + "'" + getInt(sObject.getField(field.getName())) + "'");		
+					sb.append(SPLITTER_CHAR + QUOTE + getInt(sObject.getField(field.getName())) + QUOTE);		
 				} else if (field.getType().toString().equals("boolean")) {
-					sb.append(SPLITTER_CHAR + "'" + getBoolean(sObject.getField(field.getName())) + "'");				
+					sb.append(SPLITTER_CHAR + QUOTE + getBoolean(sObject.getField(field.getName())) + QUOTE);				
+				} else {
+					LOGGER.log(Level.WARNING, "Field type not supported when inserting data. Field Type : " + field.getType().toString());
 				}
 			}
 			sb.append(NEWLINE_CHAR);
@@ -99,8 +102,9 @@ public class CSVWriter {
 		
 		try{
 			
-			FileWriter fileWriter = new FileWriter(file);
-			fileWriter.write(sb.toString());;
+			FileWriter fileWriter = new FileWriter(file, true);
+			fileWriter.write(sb.toString());
+			fileWriter.flush();
 		}catch (Exception e) {
 			// TODO close the streams
 			e.printStackTrace();
@@ -162,7 +166,7 @@ public class CSVWriter {
 		if (strObject == null) {
 			return null;
 		}
-		return strObject.toString();
+		return (strObject.toString()).replaceAll(NEWLINE_CHAR, " ").replaceAll(QUOTE, "'");
 	}
 
 	
