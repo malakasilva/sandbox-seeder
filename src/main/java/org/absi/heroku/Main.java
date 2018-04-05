@@ -2,6 +2,7 @@ package org.absi.heroku;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,7 +53,21 @@ public class Main {
 				LOGGER.info("Start Syncing object " + sObjectType);
 				List<String>lIds = new ArrayList<String>();
 				lIds.add("00128000009h2RvAAI");
-				csvReader.createSobjects("Account", lIds);	
+				ChildDetail childDetail = csvReader.createSobjects("Account", lIds, null);
+				List<ChildDetail>lChildDetails = new ArrayList<ChildDetail>();
+				lChildDetails.add(childDetail);
+				while (!lChildDetails.isEmpty()) {
+					List<ChildDetail>lChildDetailsTmp = new ArrayList<ChildDetail>();
+					for (ChildDetail childDetail1:lChildDetails) {
+						Map<String, String> mChildDetails = childDetail1.getmChildred();
+						for (String sObjectType1:mChildDetails.keySet()) {
+							ChildDetail childDetai2 = csvReader.createSobjects(sObjectType1, childDetail1.getParentIds(), mChildDetails.get(sObjectType1));
+							lChildDetailsTmp.add(childDetai2);
+						}
+						
+					}
+					lChildDetails = lChildDetailsTmp;
+				}
 			} catch (Exception e) {
 				LOGGER.log(Level.SEVERE, "Error while sync " + sObjectType, e);
 			}	

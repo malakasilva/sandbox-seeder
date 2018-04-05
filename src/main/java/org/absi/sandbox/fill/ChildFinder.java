@@ -17,21 +17,27 @@ public class ChildFinder {
     ConnectorConfig config;
     PartnerConnection connection;
     
+    Map<String,DescribeSObjectResult>mDescribeObjects;
+      
 	public ChildFinder(String userName, String password) throws ConnectionException {
 		config = new ConnectorConfig();
 	    config.setUsername(userName);
 	    config.setPassword(password);
+	    mDescribeObjects = new HashMap<String,DescribeSObjectResult>();
        	connection = Connector.newConnection(config);
 	}
-
 	
 	public Map<String, String> getChildren(String sObjectType) {
 		Map<String, String>mChildren = new HashMap<String, String>();
 		try {
-			DescribeSObjectResult describeSObjectResult = connection.describeSObject(sObjectType);
+			DescribeSObjectResult describeSObjectResult = mDescribeObjects.get(sObjectType);
+			if (describeSObjectResult == null) {
+				describeSObjectResult = connection.describeSObject(sObjectType);
+				mDescribeObjects.put(sObjectType, describeSObjectResult);
+			}
 			ChildRelationship [] childRelationships = describeSObjectResult.getChildRelationships();
 			for (ChildRelationship childRelationship:childRelationships) {
-				if (childRelationship.getDeprecatedAndHidden()){
+				if (!childRelationship.getDeprecatedAndHidden()){
 					mChildren.put(childRelationship.getChildSObject(), childRelationship.getField());
 				}
 			}
@@ -45,7 +51,11 @@ public class ChildFinder {
 	public Map<String, Field> getFields(String sObjectType) {
 		Map<String, Field>mFields = new HashMap<String, Field>();
 		try {
-			DescribeSObjectResult describeSObjectResult = connection.describeSObject(sObjectType);
+			DescribeSObjectResult describeSObjectResult = mDescribeObjects.get(sObjectType);
+			if (describeSObjectResult == null) {
+				describeSObjectResult = connection.describeSObject(sObjectType);
+				mDescribeObjects.put(sObjectType, describeSObjectResult);
+			}
 			for (Field field:describeSObjectResult.getFields()) {
 				mFields.put(field.getName(), field);
 			}
@@ -57,16 +67,15 @@ public class ChildFinder {
 		return mFields;
 	}
 
-	public void createObjects(SObject[]sObjects){
+	public SaveResult[] createObjects(SObject[]sObjects){
 		try {
 			SaveResult[]saveResults = connection.create(sObjects);
-			for (SaveResult saveResult:saveResults) {
-				System.out.println(saveResult.getSuccess() + saveResult.toString());
-			}
+			return saveResults;
 		} catch (ConnectionException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return null;
 	}
 	
 }

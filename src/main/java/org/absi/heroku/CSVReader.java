@@ -13,6 +13,7 @@ import java.util.Map;
 import org.absi.sandbox.fill.ChildFinder;
 
 import com.sforce.soap.partner.Field;
+import com.sforce.soap.partner.SaveResult;
 import com.sforce.soap.partner.sobject.SObject;
 import com.sforce.ws.ConnectionException;
 
@@ -28,54 +29,78 @@ public class CSVReader {
 		}
 	}
 	
-	public void createSobjects(String sSobjectType, List<String> lIds) {
-		List<SObject> lSObjects = getSobjects(sSobjectType, lIds);
-		childFinder.createObjects(lSObjects.toArray(new SObject[0]));
+	public ChildDetail createSobjects(String sSobjectType, List<String> lIds, String parentColumn) {
+		List<SObject> lSObjects = getSobjects(sSobjectType, lIds, parentColumn);
+		Map<String, String>mChildred = childFinder.getChildren(sSobjectType);
+		List<String>parentIds = new ArrayList<String>();
+		SaveResult[]saveResults = childFinder.createObjects(lSObjects.toArray(new SObject[0]));		
+		for (SaveResult saveResult:saveResults) {
+			if (saveResult.isSuccess()) {
+				parentIds.add(saveResult.getId());
+			}
+		}		
+		return new ChildDetail(mChildred, parentIds);
 	}
 	
-	private List<SObject> getSobjects(String sSobjectType, List<String> lIds) {
+	private List<SObject> getSobjects(String sSobjectType, List<String> lIds, String parentColumn) {
 		File file = new File(CSVWriter.FILE_PATH + sSobjectType + ".csv");
 		List<SObject> lSobjects = new ArrayList<SObject>();
 		
 		Map<String, Field>mFields = childFinder.getFields(sSobjectType);
+		
+		Integer idColumn = null;
+		
+		if (lIds != null) {
+			idColumn = 0;
+		}
 		
 		try {
 			if (file.exists() && file.isFile()) {
 				BufferedReader br = new BufferedReader(new FileReader(file));
 				String sLine = null;
 				String[]columns = null;
+				whileLoop:
 				while((sLine = br.readLine()) != null){
 					//Get the header raw first
 					if (columns == null) {
-						columns = sLine.split(CSVWriter.SPLITTER_CHAR);
+						columns = sLine.split(CSVWriter.SPLITTER_CHAR);						
 						for(int i = 0;i < columns.length;i++){
 							columns[i] = getData(columns[i]);
+							if (parentColumn != null && columns[i].equals(parentColumn)) {
+								idColumn = i;
+							}
 						}
 					} else {
 						String [] raws = sLine.split(CSVWriter.SPLITTER_CHAR);
+						
 						SObject sObject = new SObject();
 						sObject.setType(sSobjectType);
 						int i = 0;
+						int j = 0;
+						forloop:
 						for (String column:columns) {	
-							
-
-							
-							Field field = mFields.get(column);					
+													
+							Field field = mFields.get(column);							
 							String raw = raws[i++];							
 							while ((raw.lastIndexOf(CSVWriter.QUOTE) + 1) != raw.length()) {
 								raw += raws[i++];
 							}							
 							raw = getData(raw);
 							
+							if (idColumn != null && idColumn.equals(j) && !lIds.contains(raw)) {
+								continue whileLoop;
+							}							
+							j++;
+							
 							Object oFieldValue = null;
 							System.out.println(column + " - " + raw);
 
 							if (column.equals("CreatedById") || column.equals("PhotoUrl") || column.equals("IsDeleted") || column.equals("LastModifiedById")) {
-								continue;
+								continue forloop;
 							}							
 							
 							if (raw == null || raw.equals("null")) {
-								continue;
+								continue forloop;
 							}
 							
 							if (field.getType().toString().equals("string") 
