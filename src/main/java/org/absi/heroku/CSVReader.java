@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,22 +30,35 @@ public class CSVReader {
 		}
 	}
 	
-	public ChildDetail createSobjects(String sSobjectType, List<String> lIds, String parentColumn) {
-		List<SObject> lSObjects = getSobjects(sSobjectType, lIds, parentColumn);
+	public ChildDetail createSobjects(String sSobjectType, List<String> lIds, String parentColumn, Map<String,String>lIdsSource) {
+		SobjectDTO sobjectDTO = getSobjects(sSobjectType, lIds, parentColumn, lIdsSource);
+		if (sobjectDTO == null) {
+			return null;
+		}
+		List<SObject> lSObjects = sobjectDTO.getlSobjects();
+		if (lSObjects == null || lSObjects.isEmpty()) {
+			return null;
+		}
 		Map<String, String>mChildred = childFinder.getChildren(sSobjectType);
 		List<String>parentIds = new ArrayList<String>();
 		SaveResult[]saveResults = childFinder.createObjects(lSObjects.toArray(new SObject[0]));		
+		
+		Map<String,String>sourceIds = new HashMap<String,String>();
+		int i = 0;
 		for (SaveResult saveResult:saveResults) {
 			if (saveResult.isSuccess()) {
 				parentIds.add(saveResult.getId());
+				sourceIds.put(sobjectDTO.getlIds().get(i), saveResult.getId());
 			}
+			i++;
 		}		
-		return new ChildDetail(mChildred, parentIds);
+		return new ChildDetail(mChildred, parentIds, sourceIds);
 	}
 	
-	private List<SObject> getSobjects(String sSobjectType, List<String> lIds, String parentColumn) {
+	private SobjectDTO getSobjects(String sSobjectType, List<String> lIds, String parentColumn, Map<String,String>sourceIds) {
 		File file = new File(CSVWriter.FILE_PATH + sSobjectType + ".csv");
 		List<SObject> lSobjects = new ArrayList<SObject>();
+		List<String> Ids = new ArrayList<String>();
 		
 		Map<String, Field>mFields = childFinder.getFields(sSobjectType);
 		
@@ -52,6 +66,10 @@ public class CSVReader {
 		
 		if (lIds != null) {
 			idColumn = 0;
+		}
+		
+		if (sSobjectType.equals("Contact")) {
+			System.out.println("ok");
 		}
 		
 		try {
@@ -86,22 +104,45 @@ public class CSVReader {
 								raw += raws[i++];
 							}							
 							raw = getData(raw);
-							
-							if (idColumn != null && idColumn.equals(j) && !lIds.contains(raw)) {
-								continue whileLoop;
-							}							
 							j++;
+							if (raw.equals("00328000008T8imAAC")) {
+								System.out.println("fdf");
+							}
 							
+							
+
+							
+
+							if (idColumn != null && idColumn.equals(0) && idColumn.equals((j-1)) && lIds != null && !lIds.contains(raw)) {
+								continue whileLoop;
+							}
+											
+							if (idColumn != null && idColumn.equals((j-1)) && sourceIds != null && !sourceIds.keySet().contains(raw)) {
+								continue whileLoop;
+							} else if (sourceIds != null && sourceIds.keySet().contains(raw)) {
+								raw = sourceIds.get(raw);
+							}					
+														
 							Object oFieldValue = null;
-							System.out.println(column + " - " + raw);
 
 							if (column.equals("CreatedById") || column.equals("PhotoUrl") || column.equals("IsDeleted") || column.equals("LastModifiedById")) {
 								continue forloop;
 							}							
+			
+							if (sSobjectType.equals("Contact") && (column.equals("IsEmailBounced") || column.equals("Name") )) {
+								continue forloop;
+							}
+							
+							 
 							
 							if (raw == null || raw.equals("null")) {
 								continue forloop;
 							}
+							
+							if (j==1) {
+								Ids.add(raw);	
+							}							
+			
 							
 							if (field.getType().toString().equals("string") 
 									|| field.getType().toString().equals("email")
@@ -132,6 +173,8 @@ public class CSVReader {
 						lSobjects.add(sObject);
 					}					
 				}
+			} else {
+				return null;
 			}
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -140,7 +183,7 @@ public class CSVReader {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return lSobjects;
+		return new SobjectDTO(lSobjects, Ids);
 	}
 
 	private String getData(String sRaw){

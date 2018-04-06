@@ -7,10 +7,12 @@ public class ChildDetail {
 
 	private Map<String, String>mChildred;
 	private List<String>parentIds;
+	private Map<String,String>sourceIds;
 	
-	public ChildDetail(Map<String, String>mChildred, List<String>parentIds) {
+	public ChildDetail(Map<String, String>mChildred, List<String>parentIds, Map<String,String>sourceIds) {
 		this.mChildred = mChildred;
 		this.parentIds = parentIds;
+		this.sourceIds = sourceIds;
 	}
 
 	public Map<String, String> getmChildred() {
@@ -27,6 +29,14 @@ public class ChildDetail {
 
 	public void setParentIds(List<String> parentIds) {
 		this.parentIds = parentIds;
+	}
+
+	public Map<String,String> getSourceIds() {
+		return sourceIds;
+	}
+
+	public void setSourceIds(Map<String,String> sourceIds) {
+		this.sourceIds = sourceIds;
 	}
 	
 	

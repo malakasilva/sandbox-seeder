@@ -20,7 +20,7 @@ public class CSVWriter {
 	private static final String NEWLINE_CHAR = "\n";
 	public static final String SPLITTER_CHAR = ",";
 	public static final String QUOTE = "\"";
-	public static final String FILE_PATH = "C:/work/tmp/";
+	public static final String FILE_PATH = "d:/work/tmp/";
 	
 	public void writeFile(String sObjectType, SObject[]sObjects, Field[]fields){
 
