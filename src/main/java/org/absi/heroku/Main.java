@@ -2,9 +2,12 @@ package org.absi.heroku;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.absi.sandbox.download.DownloadException;
+import org.absi.sandbox.download.DownloaderMain;
+import org.absi.sandbox.seed.CSVReader;
 
 
 public class Main {
@@ -36,13 +39,13 @@ Enrico 		String password = System.getenv("SALESFORCE_PASSWORD");
 		DownloaderMain downloaderMain;
 		try {
 			downloaderMain = new DownloaderMain(userName, password, securityToken);
-		} catch (SyncException e) {
+		} catch (DownloadException e) {
 			LOGGER.log(Level.SEVERE, "Error while setting up", e);
 			return;
 		}
 		for(String sObjectType:sObjects.split(",")) {
 			try {
-				downloaderMain.generateCSV(sObjectType);
+				downloaderMain.generateCSV(sObjectType, "c:/work/tmp/");
 			} catch (Exception e) {
 				LOGGER.log(Level.SEVERE, "Error while sync " + sObjectType, e);
 			}	
@@ -57,32 +60,15 @@ Enrico 		String password = System.getenv("SALESFORCE_PASSWORD");
 			LOGGER.log(Level.SEVERE, "Error while setting up", e);
 			return;
 		}		
-		
-		for(String sObjectType:sObjects.split(",")) {
-			try {
-				LOGGER.info("Start Syncing object " + sObjectType);
-				List<String>lIds = new ArrayList<String>();
-				lIds.add("00128000009h2S1AAI");
-				List<ChildDetail>lChildDetails = new ArrayList<ChildDetail>();
-				lChildDetails.add(csvReader.createSobjects("Account", lIds, null, null));
-				while (!lChildDetails.isEmpty()) {
-					List<ChildDetail>lChildDetailsTmp = new ArrayList<ChildDetail>();
-					for (ChildDetail childDetail:lChildDetails) {
-						Map<String, String> mChildDetails = childDetail.getmChildred();
-						for (String sObjectType1:mChildDetails.keySet()) {
-							LOGGER.info("Start Syncing object " + sObjectType1);
-							ChildDetail childDetai2 = csvReader.createSobjects(sObjectType1, childDetail.getParentIds(), mChildDetails.get(sObjectType1), childDetail.getSourceIds());
-							if (childDetai2 != null) {
-								lChildDetailsTmp.add(childDetai2);
-							}
-						}
-						
-					}
-					lChildDetails = lChildDetailsTmp;
-				}
-			} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, "Error while sync " + sObjectType, e);
-			}	
+		try {
+			//Can only handle one sobject type for a run
+			String sObjectType = "Account";
+			List<String>lIds = new ArrayList<String>();
+			lIds.add("00128000009h2S1AAI");
+			csvReader.seed(sObjectType, lIds, "c:/work/tmp/");	
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Error while seeding ", e);
+			return;
 		}		
 	}
 	

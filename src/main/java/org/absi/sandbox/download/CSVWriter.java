@@ -1,4 +1,4 @@
-package org.absi.heroku;
+package org.absi.sandbox.download;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -20,13 +20,12 @@ public class CSVWriter {
 	private static final String NEWLINE_CHAR = "\n";
 	public static final String SPLITTER_CHAR = ",";
 	public static final String QUOTE = "\"";
-	public static final String FILE_PATH = "d:/work/tmp/";
 	
-	public void writeFile(String sObjectType, SObject[]sObjects, Field[]fields){
+	public void writeFile(String sObjectType, SObject[]sObjects, Field[]fields, String filePath){
 
 		StringBuilder sb = new StringBuilder();
 			
-		File file = new File(FILE_PATH + sObjectType + ".csv");
+		File file = new File(filePath + sObjectType + ".csv");
 		
 		if (!(file.exists() && file.isFile())) {
 			sb.append(QUOTE + "Id" + QUOTE);

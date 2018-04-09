@@ -1,4 +1,4 @@
-package org.absi.sandbox.fill;
+package org.absi.sandbox.seed;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,13 +13,13 @@ import com.sforce.soap.partner.sobject.SObject;
 import com.sforce.ws.ConnectionException;
 import com.sforce.ws.ConnectorConfig;
 
-public class ChildFinder {
+public class SalesforceUtil {
     ConnectorConfig config;
     PartnerConnection connection;
     
     Map<String,DescribeSObjectResult>mDescribeObjects;
       
-	public ChildFinder(String userName, String password) throws ConnectionException {
+	public SalesforceUtil(String userName, String password) throws ConnectionException {
 		config = new ConnectorConfig();
 	    config.setUsername(userName);
 	    config.setPassword(password);

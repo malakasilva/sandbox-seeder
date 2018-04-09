@@ -1,15 +1,15 @@
-package org.absi.heroku;
+package org.absi.sandbox.seed;
 
 import java.util.List;
 
 import com.sforce.soap.partner.sobject.SObject;
 
-public class SobjectDTO {
+public class SobjectDetails {
 
 	private List<SObject> lSobjects;
 	private List<String> lIds;
 	
-	public SobjectDTO(List<SObject> lSobjects, List<String> lIds) {
+	public SobjectDetails(List<SObject> lSobjects, List<String> lIds) {
 		this.lSobjects = lSobjects;
 		this.lIds = lIds;
 	}

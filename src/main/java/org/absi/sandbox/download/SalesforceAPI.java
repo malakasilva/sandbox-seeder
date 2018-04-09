@@ -1,4 +1,4 @@
-package org.absi.heroku;
+package org.absi.sandbox.download;
 
 import com.sforce.soap.partner.Connector;
 import com.sforce.soap.partner.DescribeSObjectResult;

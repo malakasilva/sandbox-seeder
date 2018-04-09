@@ -1,18 +1,20 @@
-package org.absi.heroku;
+package org.absi.sandbox.seed;
 
 import java.util.List;
 import java.util.Map;
 
-public class ChildDetail {
+public class ChildDetails {
 
 	private Map<String, String>mChildred;
 	private List<String>parentIds;
 	private Map<String,String>sourceIds;
+	private String parentSobjectType;
 	
-	public ChildDetail(Map<String, String>mChildred, List<String>parentIds, Map<String,String>sourceIds) {
+	public ChildDetails(Map<String, String>mChildred, List<String>parentIds, Map<String,String>sourceIds,String parentSobjectType) {
 		this.mChildred = mChildred;
 		this.parentIds = parentIds;
 		this.sourceIds = sourceIds;
+		this.parentSobjectType = parentSobjectType;
 	}
 
 	public Map<String, String> getmChildred() {
@@ -37,6 +39,14 @@ public class ChildDetail {
 
 	public void setSourceIds(Map<String,String> sourceIds) {
 		this.sourceIds = sourceIds;
+	}
+
+	public String getParentSobjectType() {
+		return parentSobjectType;
+	}
+
+	public void setParentSobjectType(String parentSobjectType) {
+		this.parentSobjectType = parentSobjectType;
 	}
 	
 	
